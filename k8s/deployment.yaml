@@ -3,8 +3,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: static-site
-  labels:
-    app: static-site
 spec:
   replicas: 1
   selector:
@@ -17,16 +15,9 @@ spec:
     spec:
       containers:
         - name: static-site
-          image: <AWS_ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/static-site:latest
+          image: 471112576461.dkr.ecr.us-east-1.amazonaws.com/static-site:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
-          resources:
-            requests:
-              cpu: "50m"
-              memory: "64Mi"
-            limits:
-              cpu: "200m"
-              memory: "128Mi"
       imagePullSecrets:
         - name: ecr-creds
