@@ -3,12 +3,11 @@ pipeline {
   agent any
 
   environment {
-    AWS_REGION = 'ap-south-1'            // apni region daalo
-    AWS_ACCOUNT = '<AWS_ACCOUNT_ID>'     // apna account id
+    AWS_REGION = 'us-east-1'
+    AWS_ACCOUNT = '471112576461'      // apna account ID daalna
     ECR_REPO = 'static-site'
     IMAGE_TAG = 'latest'
     ECR_URI = "${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:${IMAGE_TAG}"
-    KUBECONFIG = "${env.WORKSPACE}/.kubeconfig"  // optional if Jenkins node par global set nahi
   }
 
   stages {
@@ -18,9 +17,7 @@ pipeline {
 
     stage('Build Docker Image') {
       steps {
-        sh """
-          docker build -t ${ECR_REPO}:${IMAGE_TAG} .
-        """
+        sh "docker build -t ${ECR_REPO}:${IMAGE_TAG} ."
       }
     }
 
@@ -36,7 +33,7 @@ pipeline {
       }
     }
 
-    stage('Tag & Push Image') {
+    stage('Tag & Push') {
       steps {
         sh """
           docker tag ${ECR_REPO}:${IMAGE_TAG} ${ECR_URI}
@@ -45,27 +42,15 @@ pipeline {
       }
     }
 
-    stage('Kubeconfig (if needed)') {
-      steps {
-        // If Jenkins node has IAM creds, ye kubeconfig generate karega.
-        sh """
-          aws eks update-kubeconfig --name DONT_USE_EKS --region ${AWS_REGION} || true
-        """
-        // Hum kubeadm use kar rahe hain; kubeconfig already Jenkins node par ho to skip.
-        // Agar master node ≠ Jenkins node hai, to master se ~/.kube/config copy karke Jenkins me store credentials me use karo.
-      }
-    }
-
-    stage('Create/Update ImagePullSecret') {
+    stage('Create Pull Secret') {
       steps {
         sh """
-          # ECR dockerconfig as secret (works for kubeadm clusters too)
           kubectl delete secret ecr-creds --ignore-not-found
           aws ecr get-login-password --region ${AWS_REGION} | \
-            kubectl create secret docker-registry ecr-creds \
-              --docker-server=${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com \
-              --docker-username=AWS \
-              --docker-password-stdin
+          kubectl create secret docker-registry ecr-creds \
+            --docker-server=${AWS_ACCOUNT}.dkr.ecr.${AWS_REGION}.amazonaws.com \
+            --docker-username=AWS \
+            --docker-password-stdin
         """
       }
     }
@@ -73,26 +58,14 @@ pipeline {
     stage('Deploy to Kubernetes') {
       steps {
         sh """
-          # Replace image in deployment manifest on the fly
           sed -i 's|<AWS_ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/static-site:latest|${ECR_URI}|' k8s/deployment.yaml
 
           kubectl apply -f k8s/deployment.yaml
           kubectl apply -f k8s/service.yaml
 
-          # Wait for rollout
-          kubectl rollout status deploy/static-site --timeout=120s
+          kubectl rollout status deployment/static-site --timeout=120s
         """
       }
-    }
-  }
-
-  post {
-    success {
-      echo "Deployed successfully! Hit NodeIP:30080 to view."
-    }
-    failure {
-      echo "Deployment failed. Check logs."
-      sh "kubectl get pods -o wide || true"
     }
   }
 }
