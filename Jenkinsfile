@@ -9,7 +9,7 @@ pipeline {
   environment {
     AWS_REGION = 'us-east-1'                 // <-- apni region
     ACCOUNT_ID = '222165755374'            // <-- 12 digit account id
-    ECR_REPO  = 'deployment-with-k8'          // <-- repo name ECR me
+    ECR_REPO  = 'deploymentwithk8'          // <-- repo name ECR me
     IMAGE     = "${ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${ECR_REPO}:latest"
     KUBECONFIG = "${WORKSPACE}/kubeconfig"
   }
