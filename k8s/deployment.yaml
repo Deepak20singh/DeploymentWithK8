@@ -2,22 +2,47 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: static-site
+  name: demo-app
+  labels:
+    app: demo-app
 spec:
   replicas: 1
+  revisionHistoryLimit: 2
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
   selector:
     matchLabels:
-      app: static-site
+      app: demo-app
   template:
     metadata:
       labels:
-        app: static-site
+        app: demo-app
     spec:
       containers:
-        - name: static-site
-          image: 471112576461.dkr.ecr.us-east-1.amazonaws.com/static-site:latest
-          imagePullPolicy: Always
+        - name: demo-app
+          image: <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/<ECR_REPO>:latest
           ports:
             - containerPort: 80
-      imagePullSecrets:
-        - name: ecr-creds
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "250m"
+              memory: "128Mi"
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 15
+            periodSeconds: 10
+
