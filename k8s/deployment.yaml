@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: demo-app
-          image: <ACCOUNT_ID>.dkr.ecr.<REGION>.amazonaws.com/<ECR_REPO>:latest
+          image: 222165755374.dkr.ecr.<REGION>.amazonaws.com/<ECR_REPO>:latest
           ports:
             - containerPort: 80
           resources:
