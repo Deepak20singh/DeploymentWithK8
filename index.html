@@ -1,22 +1,28 @@
 
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>My Static Site on K8s</title>
+  <meta charset="UTF-8" />
+  <title>Enterprise CI/CD Demo</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    body { font-family: system-ui, Arial; margin:0; display:grid; place-items:center; height:100vh; background:#0f172a; color:#e2e8f0; }
-    .card { padding:28px 32px; border-radius:14px; background: #111827; border:1px solid #1f2937; }
-    h1 { margin:0 0 8px; font-size:28px; }
-    code { background:#0b1020; padding:2px 6px; border-radius:6px; }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Ubuntu,Arial,sans-serif;
+         margin:40px;line-height:1.45;background:#0f172a;color:#e2e8f0}
+    .card{background:#111827;border-radius:12px;padding:28px;max-width:720px;border:1px solid #334155}
+    h1{margin:0 0 10px;font-size:28px}
+    .pill{display:inline-block;background:#0ea5e9;color:#001122;font-weight:700;
+          padding:4px 10px;border-radius:999px;margin-bottom:10px}
+    code{background:#0b1220;border:1px solid #1f2a44;color:#93c5fd;padding:2px 6px;border-radius:6px}
+    a{color:#93c5fd}
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Deployed via Jenkins → ECR → Kubernetes 🎉</h1>
-    <p>Environment: <code>production-like (free-tier)</code></p>
-    <p>Author: Deepak Kumar Singh</p>
+    <span class="pill">Kubernetes (k3s) • Jenkins • ECR • Docker</span>
+    <h1>Welcome Deepak! 🤝</h1>
+    <p>Ye page <strong>Jenkins → Docker → AWS ECR → Kubernetes (k3s)</strong> se deploy hua hai.</p>
+    <p>Repo update karke push karoge to yahin par <em>rolling update</em> dikhega.</p>
+    <p>Try changing this text and commit → Jenkins auto-deploy karega 🚀</p>
   </div>
 </body>
 </html>
