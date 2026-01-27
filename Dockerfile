@@ -1,16 +1,16 @@
+# Lightweight Nginx
+FROM nginx:alpine
 
-FROM nginx:1.25-alpine
+# App metadata
+ARG BUILD_VERSION=dev
+ENV BUILD_VERSION=${BUILD_VERSION}
 
-# non-root best practice (optional but fine to skip on demo)
-# RUN addgroup -S app && adduser -S app -G app
+# Copy static site
+COPY index.html /usr/share/nginx/html/index.html
 
-# Copy your static site
-COPY ./index.html /usr/share/nginx/html/index.html
-
-# Healthcheck (company style)
-HEALTHCHECK --interval=30s --timeout=5s --retries=3 CMD wget -qO- http://127.0.0.1 || exit 1
+# Optional: show build in a header for debugging
+RUN echo "add_header X-Build-Version ${BUILD_VERSION};" \
+    > /etc/nginx/conf.d/build.conf
 
 EXPOSE 80
-
-# USER app
-``
+CMD ["nginx", "-g", "daemon off;"]
