@@ -2,16 +2,19 @@ pipeline {
   agent any
 
   environment {
-    DOCKERHUB_USER = "deepaksingh20i1"         // replace
+    DOCKERHUB_USER = "deepaksingh20i1"
     IMAGE_NAME     = "demo-app"
-    BUILD_VER      = "${env.BUILD_NUMBER}"      // auto version tag
-    K3S_HOST       = "ec2-user@98.81.60.59"
-    // replace
+    BUILD_VER      = "${env.BUILD_NUMBER}"
+    K3S_HOST       = "ec2-user@98.81.60.59"   // agar Ubuntu hai to ubuntu@IP
   }
+
+  options { timestamps() }
 
   stages {
     stage('Checkout') {
-      steps { git 'https://github.com/Deepak20singh/DeploymentWithK8.git' } // replace if needed
+      steps {
+        git 'https://github.com/Deepak20singh/DeploymentWithK8.git'
+      }
     }
 
     stage('Docker Build') {
@@ -33,19 +36,19 @@ pipeline {
         withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
                                           usernameVariable: 'DH_USER',
                                           passwordVariable: 'DH_PASS')]) {
-          sh 'echo $DH_PASS | docker login -u $DH_USER --password-stdin'
-          sh 'docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:latest'
-          sh 'docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_VER}'
+          sh 'echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin'
         }
+        sh 'docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:latest'
+        sh 'docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_VER}'
       }
     }
 
     stage('Deploy to k3s (Rolling Update)') {
       steps {
-        // SSH key-based login must be set up from Jenkins EC2 → k3s EC2
+        // Jenkins EC2 -> k3s EC2 SSH key-based login required
         sh """
-          ssh -o StrictHostKeyChecking=no ${K3S_HOST} \\
-            'sudo k3s kubectl set image deployment/demo-deploy demo-container=${DOCKERHUB_USER}/${IMAGE_NAME}:latest --record && \\
+          ssh -o StrictHostKeyChecking=no ${K3S_HOST} \
+            'sudo k3s kubectl set image deployment/demo-deploy demo-container=${DOCKERHUB_USER}/${IMAGE_NAME}:latest --record && \
              sudo k3s kubectl rollout status deployment/demo-deploy --timeout=120s'
         """
       }
