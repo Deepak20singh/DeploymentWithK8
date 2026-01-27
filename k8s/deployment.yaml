@@ -1,48 +1,25 @@
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: demo-app
+  name: demo-deploy
   labels:
-    app: demo-app
+    app: demo
 spec:
   replicas: 1
-  revisionHistoryLimit: 2
-  strategy:
-    type: RollingUpdate
-    rollingUpdate:
-      maxUnavailable: 0
-      maxSurge: 1
   selector:
     matchLabels:
-      app: demo-app
+      app: demo
   template:
     metadata:
       labels:
-        app: demo-app
+        app: demo
     spec:
       containers:
-        - name: demo-app
-          image: 222165755374.dkr.ecr.<REGION>.amazonaws.com/<ECR_REPO>:latest
-          ports:
-            - containerPort: 80
-          resources:
-            requests:
-              cpu: "50m"
-              memory: "64Mi"
-            limits:
-              cpu: "250m"
-              memory: "128Mi"
-          readinessProbe:
-            httpGet:
-              path: /
-              port: 80
-            initialDelaySeconds: 5
-            periodSeconds: 5
-          livenessProbe:
-            httpGet:
-              path: /
-              port: 80
-            initialDelaySeconds: 15
-            periodSeconds: 10
-
+      - name: demo-container
+        image: deepaksingh20i1/demo-app:latest
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 80
+        env:
+        - name: BUILD_VERSION
+          value: "init"
