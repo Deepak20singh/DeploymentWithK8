@@ -5,7 +5,8 @@ pipeline {
     DOCKERHUB_USER = "deepaksingh20i1"         // replace
     IMAGE_NAME     = "demo-app"
     BUILD_VER      = "${env.BUILD_NUMBER}"      // auto version tag
-    K3S_HOST       = "98.81.60.59"   // replace
+    K3S_HOST       = "ec2-user@98.81.60.59"
+    // replace
   }
 
   stages {
