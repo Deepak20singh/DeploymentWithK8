@@ -11,11 +11,11 @@ pipeline {
   options { timestamps() }
 
   stages {
-    stage('Checkout') {
-      steps {
-        git 'https://github.com/Deepak20singh/DeploymentWithK8.git'
-      }
+   stage('Checkout') {
+    steps {
+        git branch: 'main', url: 'https://github.com/Deepak20singh/DeploymentWithK8.git'
     }
+}
 
     stage('Docker Build') {
       steps {
