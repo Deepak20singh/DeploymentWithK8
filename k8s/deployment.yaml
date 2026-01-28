@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: web
-          image: <REGISTRY_HOST>:5000/deepak-app:latest
+          image: 3.236.200.249:5000/deepak-app:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
