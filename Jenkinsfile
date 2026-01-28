@@ -1,63 +1,73 @@
 pipeline {
-  agent any
+    agent any
 
-  environment {
-    DOCKERHUB_USER = "deepaksingh20i1"
-    IMAGE_NAME     = "demo-app"
-    BUILD_VER      = "${env.BUILD_NUMBER}"
-    K3S_HOST       = "ec2-user@98.81.60.59"   // agar Ubuntu hai to ubuntu@IP
-  }
-
-  options { timestamps() }
-
-  stages {
-   stage('Checkout') {
-    steps {
-        git branch: 'main', url: 'https://github.com/Deepak20singh/DeploymentWithK8.git'
-    }
-}
-
-    stage('Docker Build') {
-      steps {
-        sh 'docker --version'
-        sh 'docker build -t ${IMAGE_NAME}:latest --build-arg BUILD_VERSION=${BUILD_VER} .'
-      }
+    environment {
+        REGISTRY = "3.236.200.249:5000"
+        IMAGE_NAME = "deepak-app"
+        IMAGE_TAG = "latest"
+        K8S_DIR = "k8s"
     }
 
-    stage('Tag for Docker Hub') {
-      steps {
-        sh 'docker tag ${IMAGE_NAME}:latest ${DOCKERHUB_USER}/${IMAGE_NAME}:latest'
-        sh 'docker tag ${IMAGE_NAME}:latest ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_VER}'
-      }
-    }
+    options { timestamps(); ansiColor('xterm') }
 
-    stage('Login & Push') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: 'dockerhub-creds',
-                                          usernameVariable: 'DH_USER',
-                                          passwordVariable: 'DH_PASS')]) {
-          sh 'echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin'
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/Deepak20singh/DeploymentWithK8.git'
+            }
         }
-        sh 'docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:latest'
-        sh 'docker push ${DOCKERHUB_USER}/${IMAGE_NAME}:${BUILD_VER}'
-      }
+
+        stage('Docker Build') {
+            steps {
+                sh '''
+                  docker version || true
+                  echo "[BUILD] Building image..."
+                  docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
+                '''
+            }
+        }
+
+        stage('Tag Image') {
+            steps {
+                sh '''
+                  echo "[TAG] Tagging image for local registry..."
+                  docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                '''
+            }
+        }
+
+        stage('Push to Local Registry') {
+            steps {
+                sh '''
+                  echo "[PUSH] Pushing image to local registry..."
+                  docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
+                '''
+            }
+        }
+
+        stage('Kubernetes Deploy') {
+            steps {
+                sh '''
+                  echo "[K8S] Applying manifests..."
+                  grep -q "${REGISTRY}/${IMAGE_NAME}" ${K8S_DIR}/deployment.yaml || {
+                      echo "ERROR: deployment.yaml image must be ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}";
+                      exit 1;
+                  }
+                  kubectl apply -f ${K8S_DIR}/deployment.yaml
+                  kubectl apply -f ${K8S_DIR}/service.yaml
+                  kubectl rollout status deploy/deepak-app --timeout=120s || true
+                  kubectl get pods -l app=deepak-app -o wide
+                '''
+            }
+        }
     }
 
-    stage('Deploy to k3s (Rolling Update)') {
-      steps {
-        // Jenkins EC2 -> k3s EC2 SSH key-based login required
-        sh """
-          ssh -o StrictHostKeyChecking=no ${K3S_HOST} \
-            'sudo k3s kubectl set image deployment/demo-deploy demo-container=${DOCKERHUB_USER}/${IMAGE_NAME}:latest --record && \
-             sudo k3s kubectl rollout status deployment/demo-deploy --timeout=120s'
-        """
-      }
+    post {
+        success {
+            echo "✅ Success! Open: http://<K3S_PUBLIC_IP>:30001"
+        }
+        failure {
+            echo "❌ Failed. Check stage logs."
+        }
     }
-  }
-
-  post {
-    always {
-      sh 'docker image prune -f || true'
-    }
-  }
 }
