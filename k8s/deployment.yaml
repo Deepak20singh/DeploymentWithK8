@@ -1,25 +1,29 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: demo-deploy
+  name: deepak-app
   labels:
-    app: demo
+    app: deepak-app
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      app: demo
+      app: deepak-app
   template:
     metadata:
       labels:
-        app: demo
+        app: deepak-app
     spec:
       containers:
-      - name: demo-container
-        image: deepaksingh20i1/demo-app:latest
-        imagePullPolicy: Always
-        ports:
-        - containerPort: 80
-        env:
-        - name: BUILD_VERSION
-          value: "init"
+        - name: web
+          image: <REGISTRY_HOST>:5000/deepak-app:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "256Mi"
