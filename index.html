@@ -1,13 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Deepak App - Jenkins + K3s</title>
-  <style>body{font-family:Arial;margin:40px}.ok{color:#0a8;font-size:22px}</style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deepak's CI/CD Deployment</title>
+
+<style>
+    body {
+        margin: 0;
+        height: 100vh;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #1e3c72, #2a5298);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.15);
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        backdrop-filter: blur(10px);
+        text-align: center;
+        width: 90%;
+        max-width: 500px;
+        animation: fadeIn 2s ease-in-out;
+    }
+
+    h1 {
+        font-size: 2rem;
+        margin-bottom: 10px;
+    }
+
+    p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+    }
+
+    .badge {
+        margin-top: 15px;
+        display: inline-block;
+        padding: 8px 18px;
+        border-radius: 50px;
+        background: #00d4ff;
+        color: #000;
+        font-weight: bold;
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.08); }
+        100% { transform: scale(1); }
+    }
+</style>
+
 </head>
 <body>
-  <h1>✅ Deployment via Jenkins + K3s (Local Registry)</h1>
-  <p class="ok">Hello Deepak! Build & deploy success.</p>
-  <p>Registry: <code>&lt;REGISTRY_HOST&gt;:5000</code></p>
+
+<div class="card">
+    <h1>🚀 Deployment Successful!</h1>
+    <p>Hello Deepak!  
+    Your CI/CD pipeline using <strong>Jenkins + DockerHub + K3s</strong> is working perfectly.</p>
+
+    <div class="badge">Deployed via CI/CD ✔</div>
+</div>
+
 </body>
 </html>
