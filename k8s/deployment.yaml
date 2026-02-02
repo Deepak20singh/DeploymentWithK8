@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: deepak-app
+  name: html-demo
   labels:
-    app: deepak-app
+    app: html-demo
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
-      app: deepak-app
+      app: html-demo
   template:
     metadata:
       labels:
-        app: deepak-app
+        app: html-demo
     spec:
       containers:
-        - name: web
-          image: 3.236.200.249:5000/deepak-app:latest
+        - name: html-demo
+          image: deepaksingh20i1/html-demo:latest
           imagePullPolicy: Always
           ports:
             - containerPort: 80
@@ -25,5 +25,5 @@ spec:
               cpu: "50m"
               memory: "64Mi"
             limits:
-              cpu: "200m"
-              memory: "256Mi"
+              cpu: "250m"
+              memory: "128Mi"
