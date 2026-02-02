@@ -2,72 +2,74 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY = "3.236.200.249:5000"
-        IMAGE_NAME = "deepak-app"
-        IMAGE_TAG = "latest"
-        K8S_DIR = "k8s"
+        IMAGE = "deepaksingh20i1/html-demo:latest"
+        GIT_REPO = "https://github.com/Deepak20singh/DeploymentWithK8.git"
+        K3S_NODE = "ec2-user@54.89.38.194"    // IMPORTANT: Amazon Linux user
+        MANIFEST_DIR = "/home/ec2-user/DeploymentWithK8/k8s"
     }
 
-    options { timestamps(); ansiColor('xterm') }
-
     stages {
-        stage('Checkout') {
+
+        stage('Checkout Code') {
             steps {
-                git branch: 'main', url: 'https://github.com/Deepak20singh/DeploymentWithK8.git'
+                git branch: 'main', url: "${GIT_REPO}"
             }
         }
 
-        stage('Docker Build') {
+        stage('Docker Login') {
             steps {
-                sh '''
-                  docker version || true
-                  echo "[BUILD] Building image..."
-                  docker build -t ${IMAGE_NAME}:${IMAGE_TAG} .
-                '''
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub',
+                    usernameVariable: 'USER',
+                    passwordVariable: 'PASS'
+                )]) {
+                    sh 'echo $PASS | docker login -u $USER --password-stdin'
+                }
             }
         }
 
-        stage('Tag Image') {
+        stage('Build Docker Image') {
             steps {
-                sh '''
-                  echo "[TAG] Tagging image for local registry..."
-                  docker tag ${IMAGE_NAME}:${IMAGE_TAG} ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
-                '''
+                sh 'docker build -t ${IMAGE} .'
             }
         }
 
-        stage('Push to Local Registry') {
+        stage('Push Image to DockerHub') {
             steps {
-                sh '''
-                  echo "[PUSH] Pushing image to local registry..."
-                  docker push ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}
-                '''
+                sh 'docker push ${IMAGE}'
             }
         }
 
-        stage('Kubernetes Deploy') {
+        stage('Deploy to K3s') {
             steps {
-                sh '''
-                  echo "[K8S] Applying manifests..."
-                  grep -q "${REGISTRY}/${IMAGE_NAME}" ${K8S_DIR}/deployment.yaml || {
-                      echo "ERROR: deployment.yaml image must be ${REGISTRY}/${IMAGE_NAME}:${IMAGE_TAG}";
-                      exit 1;
-                  }
-                  kubectl apply -f ${K8S_DIR}/deployment.yaml
-                  kubectl apply -f ${K8S_DIR}/service.yaml
-                  kubectl rollout status deploy/deepak-app --timeout=120s || true
-                  kubectl get pods -l app=deepak-app -o wide
-                '''
+                sshagent (credentials: ['k3s-ssh']) {
+                    sh """
+                    ssh -o StrictHostKeyChecking=no ${K3S_NODE} '
+                        # Clone repo if not available
+                        if [ ! -d ~/DeploymentWithK8 ]; then
+                            git clone ${GIT_REPO}
+                        else
+                            cd ~/DeploymentWithK8 && git pull
+                        fi
+
+                        # Apply manifests
+                        kubectl apply -f ${MANIFEST_DIR}/deployment.yaml
+                        kubectl apply -f ${MANIFEST_DIR}/service.yaml
+
+                        kubectl rollout status deployment/html-demo --timeout=60s || true
+                    '
+                    """
+                }
             }
         }
     }
 
     post {
         success {
-            echo "✅ Success! Open: http://<K3S_PUBLIC_IP>:30001"
+            echo "APP LIVE ON: http://<K3S_PUBLIC_IP>:30080"
         }
         failure {
-            echo "❌ Failed. Check stage logs."
+            echo "Deployment Failed!"
         }
     }
 }
