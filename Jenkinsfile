@@ -42,10 +42,12 @@ pipeline {
 
         stage('Deploy to K3s') {
             steps {
-                sshagent(['k3s-key']) {   // ← FIXED: Correct Credential ID
+                // NOTE: Agar tumhari credential ID 'k3s-key' hai to 'ec2-user' ko 'k3s-key' se replace kar do
+                sshagent(['ec2-user']) {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${K3S_NODE} '
-                        # Clone repo if not exists
+                        set -e
+                        # Repo ensure / update
                         if [ ! -d /home/ec2-user/DeploymentWithK8 ]; then
                             cd /home/ec2-user
                             git clone ${GIT_REPO}
@@ -53,12 +55,16 @@ pipeline {
                             cd /home/ec2-user/DeploymentWithK8 && git pull
                         fi
 
-                        # Apply Kubernetes Manifests
-                        kubectl apply -f ${MANIFEST_DIR}/deployment.yaml
-                        kubectl apply -f ${MANIFEST_DIR}/service.yaml
+                        # Ensure correct kubeconfig (K3s default)
+                        export KUBECONFIG=/etc/rancher/k3s/k3s.yaml
 
-                        # Rollout Check
-                        kubectl rollout status deployment/html-demo --timeout=60s || true
+                        # Apply Kubernetes Manifests with validation disabled to avoid OpenAPI timeout
+                        kubectl apply --validate=false -f ${MANIFEST_DIR}/deployment.yaml
+                        kubectl apply --validate=false -f ${MANIFEST_DIR}/service.yaml
+
+                        # Rollout (force restart ensures nginx serves new content even with cached image)
+                        kubectl rollout restart deployment/html-demo || true
+                        kubectl rollout status deployment/html-demo --timeout=120s || true
                     '
                     """
                 }
@@ -68,7 +74,11 @@ pipeline {
 
     post {
         success {
-            echo "APP LIVE ON: http://${K3S_NODE}:30080"
+            // ${K3S_NODE} = ec2-user@<IP>, isse sirf IP print karne ke liye split kar rahe hain
+            script {
+                def host = "${K3S_NODE}".split('@')[-1]
+                echo "APP LIVE ON: http://${host}:30080"
+            }
         }
         failure {
             echo "Deployment Failed!"
