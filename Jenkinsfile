@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        IMAGE = "deepaksingh20i1/html-demo:latest"
+        IMAGE = "deepaksingh20i1/html-demo:${BUILD_NUMBER}"
         GIT_REPO = "https://github.com/Deepak20singh/DeploymentWithK8.git"
         K3S_NODE = "ec2-user@18.232.140.179"
         MANIFEST_DIR = "/home/ec2-user/DeploymentWithK8/k8s"
@@ -28,9 +28,9 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
+        stage('Build Docker Image (No Cache)') {
             steps {
-                sh 'docker build -t ${IMAGE} .'
+                sh 'docker build --no-cache -t ${IMAGE} .'
             }
         }
 
@@ -40,9 +40,17 @@ pipeline {
             }
         }
 
+        stage('Update Deployment YAML with New Tag') {
+            steps {
+                sh """
+                sed -i 's#image:.*#image: ${IMAGE}#g' k8s/deployment.yaml
+                """
+            }
+        }
+
         stage('Deploy to K3s') {
             steps {
-                sshagent(['k3s-key']) {   // ← FIXED: Correct Credential ID
+                sshagent(['k3s-key']) {
                     sh """
                     ssh -o StrictHostKeyChecking=no ${K3S_NODE} '
                         # Clone repo if not exists
@@ -53,7 +61,7 @@ pipeline {
                             cd /home/ec2-user/DeploymentWithK8 && git pull
                         fi
 
-                        # Apply Kubernetes Manifests
+                        # Apply updated Kubernetes Manifests
                         kubectl apply -f ${MANIFEST_DIR}/deployment.yaml
                         kubectl apply -f ${MANIFEST_DIR}/service.yaml
 
