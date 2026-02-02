@@ -4,7 +4,7 @@ pipeline {
     environment {
         IMAGE = "deepaksingh20i1/html-demo:latest"
         GIT_REPO = "https://github.com/Deepak20singh/DeploymentWithK8.git"
-        K3S_NODE = "ec2-user@54.89.38.194"    // IMPORTANT: Amazon Linux user
+        K3S_NODE = "ec2-user@18.232.140.179"    // IMPORTANT: Amazon Linux user
         MANIFEST_DIR = "/home/ec2-user/DeploymentWithK8/k8s"
     }
 
