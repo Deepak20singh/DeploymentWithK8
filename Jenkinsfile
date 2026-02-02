@@ -75,4 +75,3 @@ pipeline {
         }
     }
 }
- krke do isme
