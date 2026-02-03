@@ -1,29 +1,34 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: html-demo
+  name: myapp-deploy
   labels:
-    app: html-demo
+    app: myapp
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: html-demo
+      app: myapp
   template:
     metadata:
       labels:
-        app: html-demo
+        app: myapp
     spec:
       containers:
-        - name: html-demo
-          image: deepaksingh20i1/html-demo:latest
-          imagePullPolicy: Always
+        - name: myapp
+          image: deepaksingh20i1/myapp:latest
           ports:
             - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 5
           resources:
             requests:
               cpu: "50m"
               memory: "64Mi"
             limits:
-              cpu: "250m"
-              memory: "128Mi"
+              cpu: "200m"
+              memory: "256Mi"
