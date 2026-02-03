@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: myapp
-          image: deepaksingh20i1/myapp:latest
+          image: deepaksingh20i1/myapp:TAG
           ports:
             - containerPort: 80
           readinessProbe:
