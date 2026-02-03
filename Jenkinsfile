@@ -1,95 +1,81 @@
 pipeline {
-    agent any
+  agent any
 
-    environment {
-        IMAGE = "deepaksingh20i1/html-demo:${BUILD_NUMBER}"
-        GIT_REPO = "https://github.com/Deepak20singh/DeploymentWithK8.git"
-        K3S_NODE = "ec2-user@18.232.140.179"
-        MANIFEST_DIR = "k8s"
+  environment {
+    DOCKERHUB_REPO = 'deepaksingh20i1/myapp'
+    KUBECONFIG = '/var/lib/jenkins/kubeconfig'
+  }
+
+  options {
+    skipDefaultCheckout(true)
+    timestamps()
+  }
+
+  stages {
+    stage('Checkout') {
+      steps {
+        checkout scm
+        sh 'ls -la'
+      }
     }
 
-    stages {
-
-        stage('Checkout Code') {
-            steps {
-                git branch: 'main', url: "${GIT_REPO}"
-            }
-        }
-
-        stage('Docker Login') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub',
-                    usernameVariable: 'USER',
-                    passwordVariable: 'PASS'
-                )]) {
-                    sh 'echo $PASS | docker login -u $USER --password-stdin'
-                }
-            }
-        }
-
-        stage('Build Docker Image (No Cache)') {
-            steps {
-                sh 'docker build --no-cache -t ${IMAGE} .'
-            }
-        }
-
-        stage('Push Image to DockerHub') {
-            steps {
-                sh 'docker push ${IMAGE}'
-            }
-        }
-
-        stage('Update Deployment YAML Locally') {
-            steps {
-                sh "sed -i 's#image:.*#image: ${IMAGE}#g' k8s/deployment.yaml"
-            }
-        }
-
-        stage('Commit Updated Manifest to GitHub') {
-            steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'github-creds',
-                    usernameVariable: 'GIT_USER',
-                    passwordVariable: 'GIT_PASS'
-                )]) {
-                    sh """
-                        git config user.email "jenkins@local"
-                        git config user.name "Jenkins"
-
-                        git add k8s/deployment.yaml
-                        git commit -m "Update image tag to ${BUILD_NUMBER}" || true
-
-                        git push https://${GIT_USER}:${GIT_PASS}@github.com/Deepak20singh/DeploymentWithK8.git main
-                    """
-                }
-            }
-        }
-
-        stage('Deploy to K3s') {
-            steps {
-                sshagent(['k3s-key']) {
-                    sh """
-                    ssh -o StrictHostKeyChecking=no ${K3S_NODE} '
-                        cd /home/ec2-user/DeploymentWithK8 && git pull
-
-                        kubectl apply -f /home/ec2-user/DeploymentWithK8/k8s/deployment.yaml
-                        kubectl apply -f /home/ec2-user/DeploymentWithK8/k8s/service.yaml
-
-                        kubectl rollout status deployment/html-demo --timeout=60s || true
-                    '
-                    """
-                }
-            }
-        }
+    stage('Build Docker Image') {
+      steps {
+        sh '''
+          set -e
+          docker build -t myapp:latest .
+        '''
+      }
     }
 
-    post {
-        success {
-            echo "APP LIVE ON: http://${K3S_NODE}:30080"
+    stage('Docker Login (Docker Hub)') {
+      steps {
+        withCredentials([usernamePassword(credentialsId: 'dockerhub',
+                                         usernameVariable: 'USER',
+                                         passwordVariable: 'PASS')]) {
+          sh '''
+            echo "$PASS" | docker login -u "$USER" --password-stdin
+          '''
         }
-        failure {
-            echo "Deployment Failed!"
-        }
+      }
     }
+
+    stage('Tag & Push to Docker Hub') {
+      steps {
+        sh '''
+          set -e
+          docker tag myapp:latest ${DOCKERHUB_REPO}:$BUILD_NUMBER
+          docker tag myapp:latest ${DOCKERHUB_REPO}:latest
+          docker push ${DOCKERHUB_REPO}:$BUILD_NUMBER
+          docker push ${DOCKERHUB_REPO}:latest
+        '''
+      }
+    }
+
+    stage('Deploy to k3s') {
+      steps {
+        sh '''
+          set -e
+          # deployment.yaml already points to deepaksingh20i1/myapp:latest
+          kubectl --kubeconfig=$KUBECONFIG apply -f k8s/deployment.yaml
+          kubectl --kubeconfig=$KUBECONFIG apply -f k8s/service.yaml
+
+          echo "Waiting for rollout..."
+          kubectl --kubeconfig=$KUBECONFIG rollout status deployment/myapp-deploy --timeout=120s
+
+          echo "Services:"
+          kubectl --kubeconfig=$KUBECONFIG get svc
+        '''
+      }
+    }
+  }
+
+  post {
+    success {
+      echo "✅ Deployed. Visit: http://<APP-EC2-PUBLIC-IP>:30080"
+    }
+    always {
+      sh 'docker image prune -f || true'
+    }
+  }
 }
