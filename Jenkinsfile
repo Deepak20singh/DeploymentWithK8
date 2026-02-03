@@ -12,6 +12,7 @@ pipeline {
   }
 
   stages {
+
     stage('Checkout') {
       steps {
         checkout scm
@@ -56,7 +57,10 @@ pipeline {
       steps {
         sh '''
           set -e
-          # deployment.yaml already points to deepaksingh20i1/myapp:latest
+
+          echo "Updating image tag inside deployment.yaml..."
+          sed -i "s|deepaksingh20i1/myapp:latest|deepaksingh20i1/myapp:${BUILD_NUMBER}|g" k8s/deployment.yaml
+
           kubectl --kubeconfig=$KUBECONFIG apply -f k8s/deployment.yaml
           kubectl --kubeconfig=$KUBECONFIG apply -f k8s/service.yaml
 
@@ -68,11 +72,12 @@ pipeline {
         '''
       }
     }
+
   }
 
   post {
     success {
-      echo "✅ Deployed. Visit: http://<APP-EC2-PUBLIC-IP>:30080"
+      echo "✅ Deployed successfully. Visit the app using NodePort."
     }
     always {
       sh 'docker image prune -f || true'
