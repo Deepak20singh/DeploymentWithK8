@@ -17,6 +17,7 @@ spec:
       containers:
         - name: myapp
           image: deepaksingh20i1/myapp:TAG
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           readinessProbe:
