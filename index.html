@@ -1,24 +1,327 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>DeploymentWithK8 - Static Page</title>
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>MyApp – Fast. Simple. Reliable.</title>
+  <meta name="description" content="A modern, fast, and responsive static site template for your product or portfolio." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+
   <style>
-    body{font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
-         margin:0;display:flex;align-items:center;justify-content:center;height:100vh;background:#0f172a;color:#e2e8f0}
-    .card{background:#111827;border:1px solid #334155;border-radius:12px;padding:28px;box-shadow:0 10px 30px rgba(0,0,0,.3);text-align:center}
-    h1{margin:0 0 8px;font-size:28px}
-    p{margin:8px 0 0;color:#a5b4fc}
-    code{background:#0b1020;padding:2px 6px;border-radius:6px;color:#93c5fd}
+    :root{
+      --bg:#0b0d15; --card:#121528; --muted:#9aa3b2; --text:#e8eef9; --brand:#6c8cff; --brand-2:#59e6a2; --line:#1d223a;
+      --shadow:0 8px 30px rgba(0,0,0,.25);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif}
+    img{max-width:100%;display:block}
+    a{color:var(--brand);text-decoration:none}
+    .container{max-width:1100px;margin-inline:auto;padding:0 20px}
+    .btn{display:inline-block;padding:12px 18px;border-radius:10px;border:1px solid transparent;font-weight:600;letter-spacing:.2px;transition:.2s;cursor:pointer}
+    .btn-primary{background:linear-gradient(135deg,var(--brand),#4d6bff);color:#fff;box-shadow:var(--shadow)}
+    .btn-primary:hover{transform:translateY(-2px)}
+    .btn-ghost{border-color:#2a3254;color:var(--text);background:transparent}
+    .btn-ghost:hover{background:#151a2e}
+    .pill{display:inline-flex;gap:8px;align-items:center;padding:6px 10px;border-radius:999px;border:1px solid #223; color:#aab3c7;background:rgba(108,140,255,.08)}
+
+    /* Navbar */
+    .nav{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,rgba(11,13,21,.95),rgba(11,13,21,.75) 60%,transparent);backdrop-filter:saturate(140%) blur(8px);border-bottom:1px solid var(--line)}
+    .nav-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800}
+    .logo{width:32px;height:32px;border-radius:8px;background:conic-gradient(from 210deg,var(--brand),var(--brand-2));box-shadow:0 6px 18px rgba(92,140,255,.35)}
+    .nav-links{display:flex;gap:18px;align-items:center}
+    .nav-links a{color:#c9d4ea}
+    .mobile-toggle{display:none;background:#141a2c;border:1px solid #2a3254;color:#c9d4ea;padding:8px 10px;border-radius:8px}
+
+    /* Hero */
+    .hero{padding:64px 0 28px}
+    .hero-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:center}
+    h1{font-size:clamp(34px,6vw,56px);line-height:1.05;margin:10px 0 14px}
+    .lead{font-size:18px;color:var(--muted);max-width:620px}
+    .hero-card{background:radial-gradient(1200px 300px at 50% -100%,rgba(92,140,255,.20),transparent 50%),var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;box-shadow:var(--shadow)}
+    .stats{display:flex;gap:18px;margin-top:18px;flex-wrap:wrap}
+    .stat{padding:12px 14px;border-radius:12px;background:#0f1325;border:1px solid #1c2341;min-width:140px}
+    .stat b{font-size:22px}
+
+    /* Sections */
+    section{padding:36px 0;border-top:1px solid var(--line)}
+    h2{font-size:30px;margin:0 0 12px}
+    .muted{color:var(--muted)}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+    .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px}
+    .card h3{margin:0 0 6px}
+    .list{display:grid;gap:8px;margin:10px 0 0;padding:0;list-style:none}
+    .list li{display:flex;gap:10px}
+    .tick{color:var(--brand-2)}
+    .price{font-size:32px;font-weight:800}
+
+    /* CTA / Footer */
+    .cta{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:18px;background:linear-gradient(135deg,rgba(92,140,255,.12),rgba(89,230,162,.08));border:1px solid #223;border-radius:16px;padding:18px}
+    footer{padding:20px 0;color:#93a0bb;font-size:14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+
+    /* Contact */
+    .form{display:grid;gap:12px;max-width:520px}
+    .input{padding:12px 14px;border-radius:10px;border:1px solid #2a3254;background:#0f1325;color:#e8eef9}
+    .input:focus{outline:2px solid rgba(108,140,255,.35);border-color:#3a4c8e}
+    textarea.input{min-height:120px;resize:vertical}
+
+    /* Responsive */
+    @media (max-width: 880px){
+      .hero-grid{grid-template-columns:1fr}
+      .grid-3{grid-template-columns:1fr}
+      .nav-links{display:none}
+      .mobile-toggle{display:inline-block}
+      .nav.open .nav-links{display:flex;flex-direction:column;align-items:flex-start;padding:10px 0}
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <h1>🎉 Deployed by dev</h1>
-    <p>Repo: <code>DeploymentWithK8</code></p>
-    <p>Service: <code>NodePort :30080</code></p>
-    <h1> Sahil  </h1>
-  </div>
+  <!-- NAVBAR -->
+  <nav class="nav" id="nav">
+    <div class="container nav-row">
+      <div class="brand">
+        <div class="logo"></div>
+        <span>MyApp</span>
+      </div>
+
+      <button class="mobile-toggle" onclick="toggleNav()">☰ Menu</button>
+
+      <div class="nav-links" id="links">
+        <a href="#features">Features</a>
+        <a href="#about">About</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#contact">Contact</a>
+        <button class="btn btn-ghost" id="themeBtn" onclick="toggleTheme()">🌙 Dark</button>
+        <a class="btn btn-primary" href="#contact">Get Started</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero">
+    <div class="container hero-grid">
+      <div>
+        <span class="pill">⚡ Super fast • 🔒 Secure • 📱 Responsive</span>
+        <h1>Launch faster with a modern, static site.</h1>
+        <p class="lead">
+          A sleek, production‑ready template for product landing pages, portfolios, or docs.
+          Optimized for speed, readability, and conversions—no frameworks, no bloat.
+        </p>
+        <div style="display:flex; gap:12px; margin:18px 0 6px">
+          <a class="btn btn-primary" href="#pricing">Start Free</a>
+          <a class="btn btn-ghost" href="#features">See Features</a>
+        </div>
+
+        <div class="stats">
+          <div class="stat"><b>200ms</b><br/><span class="muted">First paint</span></div>
+          <div class="stat"><b>100%</b><br/><span class="muted">Lighthouse a11y</span></div>
+          <div class="stat"><b>0 deps</b><br/><span class="muted">Pure HTML/CSS</span></div>
+        </div>
+      </div>
+
+      <div class="hero-card">
+        <img src="https://images.unsplash.com/photo-1526378722484-bd91ca387e72?q=80&w=1200&auto=format&fit=crop" alt="preview" style="border-radius:12px;border:1px solid #222a48">
+        <div style="display:flex;gap:10px;margin-top:12px;flex-wrap:wrap">
+          <span class="pill">✅ Production‑ready</span>
+          <span class="pill">🚀 Deploy in minutes</span>
+          <span class="pill">🧩 Easy to customize</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- FEATURES -->
+  <section id="features">
+    <div class="container">
+      <h2>Features that matter</h2>
+      <p class="muted">Everything you need to ship a beautiful, fast site—nothing you don’t.</p>
+
+      <div class="grid-3" style="margin-top:14px">
+        <div class="card">
+          <h3>⚡ Blazing Fast</h3>
+          <p class="muted">Minimal CSS, zero JS bloat. Great Core Web Vitals by default.</p>
+          <ul class="list">
+            <li><span class="tick">✓</span> Static &amp; cache‑friendly</li>
+            <li><span class="tick">✓</span> Lightweight styles</li>
+            <li><span class="tick">✓</span> Optimized layout</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🛡️ Secure by Design</h3>
+          <p class="muted">No forms of dynamic code by default; easy to harden with headers.</p>
+          <ul class="list">
+            <li><span class="tick">✓</span> No runtime deps</li>
+            <li><span class="tick">✓</span> Best practices CSS</li>
+            <li><span class="tick">✓</span> Works great on Nginx</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <h3>🎨 Easy to Customize</h3>
+          <p class="muted">Style tokens at the top. Change brand colors in seconds.</p>
+          <ul class="list">
+            <li><span class="tick">✓</span> Theming support</li>
+            <li><span class="tick">✓</span> Clean structure</li>
+            <li><span class="tick">✓</span> Reusable components</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ABOUT -->
+  <section id="about">
+    <div class="container">
+      <h2>Built for shipping</h2>
+      <p class="muted">Use it as a landing page, portfolio, small docs site, or internal tool homepage.</p>
+
+      <div class="grid-3" style="margin-top:14px">
+        <div class="card">
+          <h3>🔧 Developer Friendly</h3>
+          <p class="muted">Simple markup, logical CSS, and comments where you need them.</p>
+        </div>
+        <div class="card">
+          <h3>📦 Single File</h3>
+          <p class="muted">Drop-in <code>index.html</code>—perfect for Docker + Nginx.</p>
+        </div>
+        <div class="card">
+          <h3>🌍 Responsive</h3>
+          <p class="muted">Looks great on phones, tablets, and desktops out of the box.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section id="testimonials">
+    <div class="container">
+      <h2>Loved by builders</h2>
+      <div class="grid-3" style="margin-top:14px">
+        <div class="card">
+          <p>“Setup in minutes and deployed effortlessly. Exactly what I needed.”</p>
+          <p class="muted">— A Happy Dev</p>
+        </div>
+        <div class="card">
+          <p>“Clean design, fast performance, and easy to tweak. 10/10.”</p>
+          <p class="muted">— Product Lead</p>
+        </div>
+        <div class="card">
+          <p>“The dark mode + responsive layout is just perfect.”</p>
+          <p class="muted">— Designer</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING -->
+  <section id="pricing">
+    <div class="container">
+      <h2>Simple pricing</h2>
+      <p class="muted">Start free. Upgrade anytime.</p>
+
+      <div class="grid-3" style="margin-top:14px">
+        <div class="card">
+          <h3>Starter</h3>
+          <div class="price">₹0</div>
+          <ul class="list">
+            <li><span class="tick">✓</span> Single page</li>
+            <li><span class="tick">✓</span> Dark mode</li>
+            <li><span class="tick">✓</span> Mobile responsive</li>
+          </ul>
+          <div style="margin-top:12px"><a class="btn btn-ghost" href="#contact">Choose</a></div>
+        </div>
+
+        <div class="card" style="border-color:#345; box-shadow:var(--shadow)">
+          <h3>Pro</h3>
+          <div class="price">₹499</div>
+          <ul class="list">
+            <li><span class="tick">✓</span> Multi‑section</li>
+            <li><span class="tick">✓</span> Custom branding</li>
+            <li><span class="tick">✓</span> Priority support</li>
+          </ul>
+          <div style="margin-top:12px"><a class="btn btn-primary" href="#contact">Go Pro</a></div>
+        </div>
+
+        <div class="card">
+          <h3>Team</h3>
+          <div class="price">₹1,499</div>
+          <ul class="list">
+            <li><span class="tick">✓</span> Team seats</li>
+            <li><span class="tick">✓</span> Custom sections</li>
+            <li><span class="tick">✓</span> On-demand tweaks</li>
+          </ul>
+          <div style="margin-top:12px"><a class="btn btn-ghost" href="#contact">Choose</a></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="container">
+      <h2>Let’s talk</h2>
+      <p class="muted">Fill this form and we’ll get back to you. (Static template—wire it up later if needed.)</p>
+
+      <form class="form" onsubmit="event.preventDefault(); alert('Thanks! This is a static demo form.');">
+        <input class="input" type="text" name="name" placeholder="Your name" required />
+        <input class="input" type="email" name="email" placeholder="Your email" required />
+        <textarea class="input" name="message" placeholder="Your message" required></textarea>
+        <button class="btn btn-primary" type="submit">Send Message</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section>
+    <div class="container">
+      <div class="cta">
+        <div>
+          <h3 style="margin:0">Ready to launch?</h3>
+          <p class="muted" style="margin:6px 0 0">Drop this file into your repo and ship it with your current pipeline.</p>
+        </div>
+        <div>
+          <a class="btn btn-primary" href="#contact">Get Started</a>
+          <a class="btn btn-ghost" href="#features" style="margin-left:8px">Explore</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="container">
+    <div>© <span id="yr"></span> MyApp. All rights reserved.</div>
+    <div>Made with ❤️ by Deepak.</div>
+  </footer>
+
+  <script>
+    // year
+    document.getElementById('yr').textContent = new Date().getFullYear();
+
+    // theme toggle
+    let dark = true;
+    function toggleTheme(){
+      dark = !dark;
+      if(!dark){
+        document.documentElement.style.setProperty('--bg', '#f6f7fb');
+        document.documentElement.style.setProperty('--card', '#ffffff');
+        document.documentElement.style.setProperty('--text', '#1b2130');
+        document.documentElement.style.setProperty('--muted', '#536079');
+        document.documentElement.style.setProperty('--line', '#e7e9f2');
+      }else{
+        document.documentElement.style.setProperty('--bg', '#0b0d15');
+        document.documentElement.style.setProperty('--card', '#121528');
+        document.documentElement.style.setProperty('--text', '#e8eef9');
+        document.documentElement.style.setProperty('--muted', '#9aa3b2');
+        document.documentElement.style.setProperty('--line', '#1d223a');
+      }
+      document.getElementById('themeBtn').textContent = dark ? '🌙 Dark' : '☀️ Light';
+    }
+
+    // mobile nav
+    function toggleNav(){
+      document.getElementById('nav').classList.toggle('open');
+    }
+  </script>
 </body>
 </html>
